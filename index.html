@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Price Intelligence Tool — Retail Ecom Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #fff; --bg2: #fafafa; --bg3: #f4f4f4;
+  --border: #e5e5e5; --border2: #d4d4d4;
+  --text: #0a0a0a; --text2: #525252; --text3: #a3a3a3;
+  --green: #16a34a; --green-bg: #f0fdf4; --green-border: #86efac;
+  --red: #dc2626; --red-bg: #fef2f2; --red-border: #fca5a5;
+  --amber: #d97706; --amber-bg: #fffbeb; --amber-border: #fde68a;
+  --blue: #2563eb; --blue-bg: #eff6ff; --blue-border: #bfdbfe;
+  --r: 10px; --rl: 14px;
+}
+body { font-family: 'Inter', sans-serif; background: #f0f0ef; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; -webkit-font-smoothing: antialiased; }
+.card { background: var(--bg); border-radius: 20px; border: 1px solid var(--border); width: 100%; max-width: 820px; overflow: hidden; }
+.card-header { padding: 28px 32px 24px; border-bottom: 1px solid var(--border); }
+.header-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--green); background: var(--green-bg); border: 1px solid var(--green-border); padding: 4px 11px; border-radius: 100px; margin-bottom: 14px; }
+.header-tag::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
+.card-header h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.03em; color: var(--text); margin-bottom: 6px; line-height: 1.2; }
+.card-header p { font-size: 14px; color: var(--text2); line-height: 1.6; }
+.card-body { padding: 24px 32px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.form-group label { font-size: 12px; font-weight: 500; color: var(--text2); }
+.form-group input { padding: 10px 14px; font-size: 14px; font-family: 'Inter', sans-serif; border: 1px solid var(--border); border-radius: 8px; outline: none; color: var(--text); background: var(--bg); transition: border-color 0.15s; }
+.form-group input:focus { border-color: var(--border2); }
+.form-group input::placeholder { color: var(--text3); }
+.form-hint { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.search-btn { width: 100%; padding: 12px; font-size: 14px; font-weight: 500; font-family: 'Inter', sans-serif; color: #fff; background: var(--text); border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 6px; }
+.search-btn:hover { opacity: 0.85; }
+.search-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.loading { display: none; padding: 48px; text-align: center; }
+.spinner { width: 30px; height: 30px; border: 2px solid var(--border); border-top-color: var(--text); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.load-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 12px; }
+.load-step { font-size: 13px; color: var(--text3); padding: 4px 0; transition: color 0.3s; }
+.load-step.on { color: var(--text2); font-weight: 500; }
+.results { display: none; flex-direction: column; gap: 14px; }
+.alert { border-radius: var(--r); padding: 14px 16px; display: flex; gap: 10px; }
+.alert.danger { background: var(--red-bg); border: 1px solid var(--red-border); }
+.alert.success { background: var(--green-bg); border: 1px solid var(--green-border); }
+.alert.warning { background: var(--amber-bg); border: 1px solid var(--amber-border); }
+.alert-icon { font-size: 18px; line-height: 1.4; }
+.alert-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+.alert.danger .alert-title { color: var(--red); }
+.alert.success .alert-title { color: var(--green); }
+.alert.warning .alert-title { color: var(--amber); }
+.alert-body { font-size: 13px; color: var(--text2); line-height: 1.55; }
+.section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
+.your-row { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
+.your-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); margin-bottom: 3px; }
+.your-site { font-size: 14px; font-weight: 500; color: var(--text); }
+.your-price { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; color: var(--text); }
+.your-note { font-size: 11px; color: var(--text3); }
+.comp-list { display: flex; flex-direction: column; gap: 6px; }
+.comp-row { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 16px; display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; }
+.comp-row.cheapest { background: var(--red-bg); border-color: var(--red-border); }
+.comp-site { font-size: 14px; font-weight: 500; color: var(--text); }
+.comp-site a { color: var(--text); text-decoration: none; }
+.comp-site a:hover { text-decoration: underline; }
+.comp-detail { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.comp-price { font-size: 16px; font-weight: 600; color: var(--text); white-space: nowrap; text-align: right; }
+.badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 100px; white-space: nowrap; }
+.badge.red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.badge.green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.badge.amber { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+.opp-card { background: var(--text); border-radius: var(--rl); padding: 22px 24px; }
+.opp-label { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 16px; }
+.opp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.opp-stat { background: rgba(255,255,255,0.06); border-radius: var(--r); padding: 14px; }
+.opp-num { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; color: #fff; line-height: 1; margin-bottom: 5px; }
+.opp-num.red { color: #f87171; }
+.opp-num.green { color: #4ade80; }
+.opp-desc { font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.4; }
+.intel-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.intel-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--rl); padding: 16px 18px; }
+.intel-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.intel-logo { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+.intel-platform { font-size: 13px; font-weight: 600; color: var(--text); }
+.intel-domain { font-size: 11px; color: var(--text3); margin-top: 1px; }
+.intel-count { font-size: 30px; font-weight: 600; letter-spacing: -0.03em; color: var(--text); line-height: 1; margin-bottom: 3px; }
+.intel-count-label { font-size: 12px; color: var(--text3); margin-bottom: 12px; }
+.intel-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+.intel-tag { font-size: 11px; color: var(--text2); background: var(--bg); border: 1px solid var(--border); padding: 2px 8px; border-radius: 100px; }
+.intel-note { font-size: 12px; color: var(--text2); line-height: 1.55; padding-top: 10px; border-top: 1px solid var(--border); }
+.intel-link { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--blue); text-decoration: none; margin-top: 8px; }
+.intel-link:hover { text-decoration: underline; }
+.cta-strip { background: var(--green-bg); border: 1px solid var(--green-border); border-radius: var(--r); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.cta-text { font-size: 13px; font-weight: 500; color: var(--green); }
+.cta-btn { font-size: 13px; font-weight: 500; color: #fff; background: var(--green); padding: 8px 18px; border-radius: 7px; text-decoration: none; }
+.error-box { background: var(--red-bg); border: 1px solid var(--red-border); border-radius: var(--r); padding: 14px 18px; font-size: 13px; color: var(--red); line-height: 1.6; display: none; margin-bottom: 12px; }
+.reset-btn { background: none; border: none; font-size: 13px; color: var(--text3); cursor: pointer; font-family: 'Inter', sans-serif; text-decoration: underline; padding: 4px 0; }
+.results-top { display: flex; justify-content: space-between; align-items: center; }
+.results-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.results-sub { font-size: 13px; color: var(--text2); margin-top: 2px; }
+@media(max-width:640px) {
+  .card-header, .card-body { padding: 20px; }
+  .form-row { grid-template-columns: 1fr; }
+  .opp-grid { grid-template-columns: 1fr 1fr; }
+  .intel-grid { grid-template-columns: 1fr; }
+  .comp-row { grid-template-columns: 1fr auto; }
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="card-header">
+    <div class="header-tag">Free Price Intelligence Audit</div>
+    <h1>See Who's Undercutting You Right Now.</h1>
+    <p>Enter any product and your competitor's domain. We search Google Shopping in real time, find every retailer selling the same product, show you who's cheapest and by how much — and reveal how many ads your competitor is running on Google and Meta.</p>
+  </div>
+  <div class="card-body">
+
+    <div id="formWrap">
+      <div class="form-group">
+        <label>Product name or model number</label>
+        <input type="text" id="productInput" placeholder="e.g. Victron MultiPlus-II 48/3000" />
+        <div class="form-hint">Be specific — include brand and model number for best results</div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Your website (optional)</label>
+          <input type="text" id="yourSite" placeholder="e.g. energyeco.com.au" />
+          <div class="form-hint">We'll find your price and compare it</div>
+        </div>
+        <div class="form-group">
+          <label>Competitor domain to check ads</label>
+          <input type="text" id="competitorDomain" placeholder="e.g. solaray.com.au" />
+          <div class="form-hint">We'll check their Google + Meta ad activity</div>
+        </div>
+      </div>
+      <div class="error-box" id="errorBox"></div>
+      <button class="search-btn" id="searchBtn" onclick="runSearch()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Search Google Shopping
+      </button>
+    </div>
+
+    <div class="loading" id="loadingWrap">
+      <div class="spinner"></div>
+      <div class="load-title">Scanning Google Shopping...</div>
+      <div class="load-step" id="ls1">Identifying product</div>
+      <div class="load-step" id="ls2">Finding competitor prices</div>
+      <div class="load-step" id="ls3">Calculating price gaps</div>
+      <div class="load-step" id="ls4">Checking competitor ad activity</div>
+      <div class="load-step" id="ls5">Building your report</div>
+    </div>
+
+    <div class="results" id="resultsWrap"></div>
+
+  </div>
+</div>
+
+<script>
+const SERP_KEY = 'Tj6vxaHABUEPJr1qtgKxTwTB';
+
+function fmt(p) {
+  if (!p && p !== 0) return null;
+  const n = parseFloat(String(p).replace(/[^0-9.]/g,''));
+  return isNaN(n) ? null : n;
+}
+
+function fmtDisplay(p, currency) {
+  const n = fmt(p);
+  if (n === null) return 'N/A';
+  const sym = currency === 'AUD' ? 'A$' : '$';
+  return sym + n.toLocaleString('en-AU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+async function animSteps() {
+  const steps = ['ls1','ls2','ls3','ls4','ls5'];
+  for (let i = 0; i < steps.length; i++) {
+    steps.forEach(s => document.getElementById(s).classList.remove('on'));
+    document.getElementById(steps[i]).classList.add('on');
+    await new Promise(r => setTimeout(r, 1800));
+  }
+}
+
+function showError(msg) {
+  document.getElementById('loadingWrap').style.display = 'none';
+  document.getElementById('formWrap').style.display = 'block';
+  const eb = document.getElementById('errorBox');
+  eb.innerHTML = msg;
+  eb.style.display = 'block';
+  document.getElementById('searchBtn').disabled = false;
+}
+
+function reset() {
+  document.getElementById('productInput').value = '';
+  document.getElementById('yourSite').value = '';
+  document.getElementById('competitorDomain').value = '';
+  document.getElementById('resultsWrap').style.display = 'none';
+  document.getElementById('resultsWrap').innerHTML = '';
+  document.getElementById('errorBox').style.display = 'none';
+  document.getElementById('formWrap').style.display = 'block';
+  document.getElementById('searchBtn').disabled = false;
+}
+
+async function runSearch() {
+  const product = document.getElementById('productInput').value.trim();
+  const yourSite = document.getElementById('yourSite').value.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const competitor = document.getElementById('competitorDomain').value.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
+
+  if (!product) { document.getElementById('productInput').focus(); return; }
+
+  document.getElementById('searchBtn').disabled = true;
+  document.getElementById('errorBox').style.display = 'none';
+  document.getElementById('formWrap').style.display = 'none';
+  document.getElementById('loadingWrap').style.display = 'block';
+  animSteps();
+
+  try {
+    // Call SerpApi Google Shopping via our proxy
+    const shoppingParams = new URLSearchParams({
+      engine: 'google_shopping',
+      q: product,
+      api_key: SERP_KEY,
+      gl: 'au',
+      hl: 'en',
+      num: '20'
+    });
+
+    const shoppingResp = await fetch(`/serp?${shoppingParams}`);
+    if (!shoppingResp.ok) throw new Error('Shopping search failed. Check your API key.');
+    const shoppingData = await shoppingResp.json();
+
+    if (shoppingData.error) throw new Error(shoppingData.error);
+
+    const results = shoppingData.shopping_results || [];
+    if (results.length === 0) throw new Error('No Google Shopping results found for "' + product + '". Try a more specific product name or model number.');
+
+    // Sort by price
+    const sorted = results
+      .filter(r => r.price)
+      .map(r => ({
+        title: r.title,
+        site: r.source || extractDomain(r.link || ''),
+        url: r.link || null,
+        price: fmt(r.extracted_price || r.price),
+        priceRaw: r.price,
+        rating: r.rating,
+        reviews: r.reviews,
+        delivery: r.delivery || null,
+        thumbnail: r.thumbnail || null
+      }))
+      .sort((a,b) => (a.price||9999) - (b.price||9999));
+
+    // Find your price
+    let yourPrice = null;
+    let yourResult = null;
+    if (yourSite) {
+      yourResult = sorted.find(r => r.site && r.site.toLowerCase().includes(yourSite.toLowerCase().replace('www.','')));
+      if (yourResult) yourPrice = yourResult.price;
+    }
+
+    const cheapest = sorted[0];
+
+    renderResults(sorted, yourPrice, yourResult, yourSite, competitor, product, cheapest);
+
+  } catch(err) {
+    showError('<strong>Error:</strong> ' + err.message);
+  }
+}
+
+function extractDomain(url) {
+  try { return new URL(url).hostname.replace('www.',''); } catch(e) { return url; }
+}
+
+function renderResults(sorted, yourPrice, yourResult, yourSite, competitor, product, cheapest) {
+  document.getElementById('loadingWrap').style.display = 'none';
+
+  const cheapP = cheapest?.price;
+  let html = '';
+
+  html += '<div class="results-top"><div><div class="results-title">' + product + '</div><div class="results-sub">' + sorted.length + ' retailers found on Google Shopping</div></div><button class="reset-btn" onclick="reset()">← New search</button></div>';
+
+  // Alert
+  if (yourPrice && cheapP) {
+    if (cheapP < yourPrice) {
+      const gap = (yourPrice - cheapP).toFixed(2);
+      const pct = Math.round((yourPrice - cheapP) / yourPrice * 100);
+      html += '<div class="alert danger"><div class="alert-icon">⚠️</div><div><div class="alert-title">You\'re being undercut by $' + gap + ' (' + pct + '%)</div><div class="alert-body">' + (cheapest.site||'A competitor') + ' is the cheapest on Google Shopping right now at ' + fmtDisplay(cheapP) + '. Your price: ' + fmtDisplay(yourPrice) + '. 90% of buyers choose on price — every search they win is a sale you\'re losing.</div></div></div>';
+    } else if (cheapP === yourPrice) {
+      html += '<div class="alert warning"><div class="alert-icon">⚡</div><div><div class="alert-title">You\'re tied for cheapest</div><div class="alert-body">Your price matches the lowest competitor. Without dynamic pricing, any competitor dropping by even $1 will take the position — and you won\'t know until sales drop.</div></div></div>';
+    } else {
+      html += '<div class="alert success"><div class="alert-icon">✅</div><div><div class="alert-title">You\'re currently the cheapest</div><div class="alert-body">Your price of ' + fmtDisplay(yourPrice) + ' beats every competitor found. But competitor prices change daily — without dynamic pricing, this can flip overnight.</div></div></div>';
+    }
+  } else {
+    html += '<div class="alert warning"><div class="alert-icon">🔍</div><div><div class="alert-title">' + sorted.length + ' retailers found selling this product</div><div class="alert-body">Add your website above to see exactly where your price sits against the competition.</div></div></div>';
+  }
+
+  // Your price row
+  if (yourPrice && yourResult) {
+    html += '<div class="your-row"><div><div class="your-label">Your store</div><div class="your-site">' + yourSite + '</div></div><div style="text-align:right"><div class="your-price">' + fmtDisplay(yourPrice) + '</div><div class="your-note">Your current price</div></div></div>';
+  }
+
+  // Competitor list
+  html += '<div><div class="section-label">All retailers on Google Shopping — sorted cheapest first</div><div class="comp-list">';
+  sorted.slice(0, 8).forEach((c, i) => {
+    const isCheap = i === 0;
+    const isYours = yourResult && c.site === yourResult.site;
+    let badge = '';
+    if (yourPrice && c.price) {
+      const d = c.price - yourPrice;
+      const pct = ((d / yourPrice) * 100).toFixed(1);
+      if (d < -0.5) badge = '<div class="badge red">$' + Math.abs(d).toFixed(2) + ' cheaper</div>';
+      else if (d > 0.5) badge = '<div class="badge green">$' + d.toFixed(2) + ' dearer</div>';
+      else badge = '<div class="badge amber">~same</div>';
+    }
+    const cheapBadge = isCheap && !isYours ? ' <span class="badge red" style="margin-left:5px;vertical-align:middle;">Cheapest</span>' : '';
+    const yourBadge = isYours ? ' <span class="badge green" style="margin-left:5px;vertical-align:middle;">Your store</span>' : '';
+    const siteDisplay = c.url ? '<a href="' + c.url + '" target="_blank">' + (c.site||'Unknown') + '</a>' : (c.site||'Unknown');
+    const delivery = c.delivery ? '<span style="margin-left:6px;color:var(--green);font-size:11px;">✓ ' + c.delivery + '</span>' : '';
+    html += '<div class="comp-row' + (isCheap && !isYours ? ' cheapest' : '') + '"><div><div class="comp-site">' + siteDisplay + cheapBadge + yourBadge + '</div><div class="comp-detail">' + (c.title||'').substring(0,60) + delivery + '</div></div><div class="comp-price">' + fmtDisplay(c.price) + '</div>' + badge + '</div>';
+  });
+  html += '</div></div>';
+
+  // Opportunity card
+  if (yourPrice && cheapP && cheapP < yourPrice) {
+    const gap = (yourPrice - cheapP).toFixed(2);
+    const monthly50 = Math.round(parseFloat(gap) * 50);
+    const monthly200 = Math.round(parseFloat(gap) * 200);
+    const annual = monthly200 * 12;
+    html += '<div class="opp-card"><div class="opp-label">Your pricing gap — estimated impact</div><div class="opp-grid"><div class="opp-stat"><div class="opp-num red">$' + gap + '</div><div class="opp-desc">Price gap per lost sale</div></div><div class="opp-stat"><div class="opp-num red">$' + monthly50.toLocaleString() + '/mo</div><div class="opp-desc">Est. lost at 50 units/month</div></div><div class="opp-stat"><div class="opp-num red">$' + monthly200.toLocaleString() + '/mo</div><div class="opp-desc">Est. lost at 200 units/month</div></div><div class="opp-stat"><div class="opp-num green">Dynamic pricing</div><div class="opp-desc">Closes this gap automatically, 24/7</div></div></div></div>';
+  }
+
+  // Competitor intel
+  if (competitor) {
+    const gUrl = 'https://adstransparency.google.com/advertiser?region=AU&query=' + encodeURIComponent(competitor);
+    const mUrl = 'https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=AU&q=' + encodeURIComponent(competitor) + '&search_type=keyword_unordered';
+    const semUrl = 'https://www.semrush.com/analytics/overview/?q=' + encodeURIComponent(competitor) + '&searchType=domain';
+
+    html += '<div><div class="section-label">Competitor ad intelligence — ' + competitor + '</div><div class="intel-grid">';
+
+    html += '<div class="intel-card"><div class="intel-header"><div class="intel-logo" style="background:#e8f0fe;">🔵</div><div><div class="intel-platform">Google Ads</div><div class="intel-domain">' + competitor + '</div></div></div><div class="intel-count">Live</div><div class="intel-count-label">Click to see active ads</div><div class="intel-note">See every Google ad this competitor is running right now — search, shopping, and display.</div><a href="' + gUrl + '" target="_blank" class="intel-link">Open Google Ads Transparency ↗</a></div>';
+
+    html += '<div class="intel-card"><div class="intel-header"><div class="intel-logo" style="background:#eff6ff;">🔷</div><div><div class="intel-platform">Meta Ads</div><div class="intel-domain">' + competitor + '</div></div></div><div class="intel-count">Live</div><div class="intel-count-label">Click to see active ads</div><div class="intel-note">See every Facebook and Instagram ad this competitor is currently running — images, videos, and carousels.</div><a href="' + mUrl + '" target="_blank" class="intel-link">Open Meta Ad Library ↗</a></div>';
+
+    html += '<div class="intel-card"><div class="intel-header"><div class="intel-logo" style="background:#fef3c7;">🟡</div><div><div class="intel-platform">Traffic & Keywords</div><div class="intel-domain">' + competitor + '</div></div></div><div class="intel-count">Live</div><div class="intel-count-label">Click to see traffic data</div><div class="intel-note">See their monthly traffic, top keywords, and paid vs organic breakdown.</div><a href="' + semUrl + '" target="_blank" class="intel-link">Open SemRush Overview ↗</a></div>';
+
+    html += '</div></div>';
+  }
+
+  html += '<div class="cta-strip"><div class="cta-text">Want us to automatically fix your pricing across every SKU — and build the Google Shopping system that wins?</div><a href="#" class="cta-btn">Book a free audit →</a></div>';
+
+  const rw = document.getElementById('resultsWrap');
+  rw.innerHTML = html;
+  rw.style.display = 'flex';
+  rw.style.flexDirection = 'column';
+  rw.style.gap = '14px';
+}
+</script>
+</body>
+</html>
